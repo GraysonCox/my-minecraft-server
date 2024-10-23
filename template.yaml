@@ -44,19 +44,37 @@ Resources:
     Metadata:
       AWS::CloudFormation::Init:
         config:
+          packages:
+            yum:
+              java-21-amazon-corretto-headless: []
+          users:
+            grayson:
+              uid: 69
           files:
-            /minecraft-stuff/fuck.txt:
-              content: fuck
-              owner: root
-              group: root
+            /etc/systemd/system/minecraft-server.service:
+              content: |
+                [Unit]
+                Description=Minecraft Server
+                Wants=network-online.target
+
+                [Service]
+                User=grayson
+                WorkingDirectory=/minecraft-stuff
+                ExecStart=java -Xmx1300M -Xms1300M -jar server.jar nogui
+                ExecStop=kill -9 $(ps -ef | pgrep -f "java")
+                StandardInput=null
+
+                [Install]
+                WantedBy=multi-user.target
+            /minecraft-stuff/eula.txt:
+              content: eula=true
             /minecraft-stuff/server.jar:
               source: https://piston-data.mojang.com/v1/objects/7bf95409b0d9b5388bfea3704ec92012d273c14c/server.jar
-              owner: root
-              group: root
-          commands:
-            1_yo:
-              command: echo 'Yo!'
-              waitAfterCompletion: 0
+          services:
+            systemd:
+              minecraft-server:
+                enabled: true
+                ensureRunning: true
     Properties:
       InstanceType: t3.small
       ImageId: !Ref ImageId
@@ -71,9 +89,8 @@ Resources:
         Fn::Base64:
           !Sub
           - |
-            #!/bin/bash -x
-            yum install -y aws-cfn-bootstrap
-            /opt/aws/bin/cfn-init -v --stack ${stack_name} --resource Ec2Instance --region ${region}
-            /opt/aws/bin/cfn-signal -e $? --stack ${stack_name} --resource Ec2Instance --region ${region}
+            #!/bin/bash
+            cfn-init -v --stack ${stack_name} --resource Ec2Instance --region ${region}
+            cfn-signal -e $? --stack ${stack_name} --resource Ec2Instance --region ${region}
           - stack_name: !Ref AWS::StackName
             region: !Ref AWS::Region
