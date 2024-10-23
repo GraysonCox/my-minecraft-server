@@ -162,9 +162,12 @@ Resources:
     Properties:
       HostedZoneId: !Ref HostedZoneId
       RecordSets:
-        - Name: minecraft
+        - Name: !Sub minecraft.${DomainName}
           Type: A
-          AliasTarget:
-            DNSName: !GetAtt Ec2Instance.PublicDnsName
-            EvaluateTargetHealth: false
-            HostedZoneId: !Ref HostedZoneId
+          TTL: 30
+          ResourceRecords:
+            - !GetAtt Ec2Instance.PublicIp
+        - Name: minecraft
+          Type: SRV
+          ResourceRecords:
+            - !Sub 30 0 25565 minecraft.${DomainName}
