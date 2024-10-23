@@ -54,7 +54,7 @@ Resources:
               command: echo 'Yo!'
               waitAfterCompletion: 0
     Properties:
-      InstanceType: t2.micro
+      InstanceType: t3.small
       ImageId: !Ref ImageId
       SecurityGroups:
         - !Ref SecurityGroup
