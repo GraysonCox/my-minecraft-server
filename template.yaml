@@ -167,7 +167,7 @@ Resources:
           TTL: 30
           ResourceRecords:
             - !GetAtt Ec2Instance.PublicIp
-        - Name: minecraft
+        - Name: !Sub minecraft.${DomainName}
           Type: SRV
           TTL: 30
           ResourceRecords:
