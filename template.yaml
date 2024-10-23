@@ -13,6 +13,9 @@ Parameters:
   ServerPort:
     Type: String
     Default: 25565
+  WorldBackupS3BucketName:
+    Type: String
+    NoEcho: true
 
 Resources:
   KeyPair:
@@ -45,6 +48,8 @@ Resources:
           packages:
             yum:
               java-21-amazon-corretto-headless: []
+          sources:
+            /minecraft-stuff/world: !Sub https://s3.amazonaws.com/${WorldBackupS3BucketName}/world.tar.gz
           files:
             /etc/systemd/system/minecraft-server.service:
               content: |
@@ -55,8 +60,8 @@ Resources:
                 [Service]
                 User=root
                 WorkingDirectory=/minecraft-stuff
-                ExecStart=java -Xmx1300M -Xms1300M -jar server.jar nogui
-                ExecStop=kill -9 $(ps -ef | pgrep -f 'java')
+                ExecStart=start.sh
+                ExecStop=stop.sh ; back-up.sh
                 StandardInput=null
 
                 [Install]
@@ -129,6 +134,19 @@ Resources:
                 use-native-transport=true
                 view-distance=10
                 white-list=false
+            /minecraft-stuff/start.sh:
+              content: |
+                #!/bin/bash
+                java -Xmx1300M -Xms1300M -jar server.jar nogui
+            /minecraft-stuff/stop.sh:
+              content: |
+                #!/bin/bash
+                kill -9 $(ps -ef | pgrep -f 'java')
+            /minecraft-stuff/back-up.sh:
+              content: !Sub |
+                #!/bin/bash
+                tar -czvf world.tar.gz world
+                aws s3 cp world.tar.gz s3://${WorldBackupS3BucketName}/world.tar.gz
           services:
             systemd:
               minecraft-server:
