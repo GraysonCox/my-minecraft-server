@@ -1,23 +1,20 @@
 ---
 
 Parameters:
-  HostedZoneId:
+  DomainName:
     Type: String
     NoEcho: true
-  DomainName:
+  HostedZoneId:
     Type: String
     NoEcho: true
   ImageId:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64
+  ServerPort:
+    Type: String
+    Default: 25565
 
 Resources:
-  LogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Ref AWS::StackName
-      RetentionInDays: 90
-
   KeyPair:
     Type: AWS::EC2::KeyPair
     Properties:
@@ -26,11 +23,11 @@ Resources:
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Enable HTTP and RDP
+      GroupDescription: Enable SSH and Minecraft connections
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 25565
-          ToPort: 25565
+          FromPort: !Ref ServerPort
+          ToPort: !Ref ServerPort
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 22
@@ -69,7 +66,7 @@ Resources:
             /minecraft-stuff/server.jar:
               source: https://piston-data.mojang.com/v1/objects/7bf95409b0d9b5388bfea3704ec92012d273c14c/server.jar
             /minecraft-stuff/server.properties:
-              content: |
+              content: !Sub |
                 #Minecraft server properties
                 accepts-transfers=false
                 allow-flight=false
@@ -111,7 +108,7 @@ Resources:
                 player-idle-timeout=0
                 prevent-proxy-connections=false
                 pvp=true
-                query.port=25565
+                query.port=${ServerPort}
                 rate-limit=0
                 rcon.password=
                 rcon.port=25575
@@ -122,7 +119,7 @@ Resources:
                 resource-pack-prompt=
                 resource-pack-sha1=
                 server-ip=
-                server-port=25565
+                server-port=${ServerPort}
                 simulation-distance=10
                 spawn-monsters=true
                 spawn-protection=16
@@ -171,4 +168,4 @@ Resources:
           Type: SRV
           TTL: 30
           ResourceRecords:
-            - !Sub 1 0 25565 minecraft.${DomainName}
+            - !Sub 1 0 ${ServerPort} minecraft.${DomainName}
