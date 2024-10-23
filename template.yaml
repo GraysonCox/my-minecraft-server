@@ -23,8 +23,8 @@ Resources:
       GroupDescription: Enable HTTP and RDP
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
+          FromPort: 25565
+          ToPort: 25565
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 22
