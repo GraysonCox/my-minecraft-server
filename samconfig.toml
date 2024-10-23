@@ -1,0 +1,10 @@
+version = 0.1
+
+[default]
+[default.deploy]
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
+tags = "project=my-minecraft-server"
+image_repositories = []
+resolve_s3 = true
+fail_on_empty_changeset = false
