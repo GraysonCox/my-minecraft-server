@@ -50,7 +50,7 @@ Resources:
               waitAfterCompletion: 0
     Properties:
       InstanceType: t2.micro
-      ImageId: {{ resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2 }}
+      ImageId: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64
       SecurityGroups:
         - !Ref SecurityGroup
       KeyName: !Ref KeyPair
