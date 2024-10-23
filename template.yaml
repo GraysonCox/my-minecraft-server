@@ -50,6 +50,7 @@ Resources:
           users:
             grayson:
               uid: 69
+              homeDir: /home/grayson
           files:
             /etc/systemd/system/minecraft-server.service:
               content: |
@@ -59,16 +60,16 @@ Resources:
 
                 [Service]
                 User=grayson
-                WorkingDirectory=/minecraft-stuff
+                WorkingDirectory=/home/grayson
                 ExecStart=java -Xmx1300M -Xms1300M -jar server.jar nogui
                 ExecStop=kill -9 $(ps -ef | pgrep -f "java")
                 StandardInput=null
 
                 [Install]
                 WantedBy=multi-user.target
-            /minecraft-stuff/eula.txt:
+            /home/grayson/eula.txt:
               content: eula=true
-            /minecraft-stuff/server.jar:
+            /home/grayson/server.jar:
               source: https://piston-data.mojang.com/v1/objects/7bf95409b0d9b5388bfea3704ec92012d273c14c/server.jar
           services:
             systemd:
