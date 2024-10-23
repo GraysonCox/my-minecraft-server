@@ -1,5 +1,10 @@
 ---
 
+Parameters:
+  ImageId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64
+
 Resources:
   LogGroup:
     Type: AWS::Logs::LogGroup
@@ -50,7 +55,7 @@ Resources:
               waitAfterCompletion: 0
     Properties:
       InstanceType: t2.micro
-      ImageId: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64
+      ImageId: !Ref ImageId
       SecurityGroups:
         - !Ref SecurityGroup
       KeyName: !Ref KeyPair
