@@ -1,6 +1,12 @@
 ---
 
 Parameters:
+  HostedZoneId:
+    Type: String
+    NoEcho: true
+  DomainName:
+    Type: String
+    NoEcho: true
   ImageId:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64
@@ -31,11 +37,6 @@ Resources:
           ToPort: 22
           CidrIp: 0.0.0.0/0
 
-  ElasticIp:
-    Type: AWS::EC2::EIP
-    Properties:
-      InstanceId: !Ref Ec2Instance
-
   Ec2Instance:
     Type: AWS::EC2::Instance
     CreationPolicy:
@@ -58,7 +59,7 @@ Resources:
                 User=root
                 WorkingDirectory=/minecraft-stuff
                 ExecStart=java -Xmx1300M -Xms1300M -jar server.jar nogui
-                ExecStop=kill -9 $(ps -ef | pgrep -f "java")
+                ExecStop=kill -9 $(ps -ef | pgrep -f 'java')
                 StandardInput=null
 
                 [Install]
@@ -155,3 +156,15 @@ Resources:
             cfn-signal -e $? --stack ${stack_name} --resource Ec2Instance --region ${region}
           - stack_name: !Ref AWS::StackName
             region: !Ref AWS::Region
+
+  Route53RecordSetGroup:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      RecordSets:
+        - Name: minecraft
+          Type: A
+          AliasTarget:
+            DNSName: !GetAtt Ec2Instance.PublicDnsName
+            EvaluateTargetHealth: false
+            HostedZoneId: !Ref HostedZoneId
