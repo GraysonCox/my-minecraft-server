@@ -24,13 +24,13 @@ Resources:
       UserName: !Ref AWS::StackName
       Path: /
       Policies:
-        PolicyName: root
-        PolicyDocument:
-          Statement:
-            - Effect: Allow
-              Action:
-                - s3:GetObject
-                - s3:PutObject
+        - PolicyName: root
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
 
   AccessKey:
     Type: AWS::IAM::AccessKey
