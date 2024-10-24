@@ -38,6 +38,20 @@ Resources:
     Properties:
       UserName: !Ref User
 
+  WorldBackupS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WorldBackupS3BucketName
+      PolicyDocument:
+        Statement:
+          Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+          Resource: !Sub arn:aws:s3:::${WorldBackupS3BucketName}/*
+          Principal:
+            AWS: !GetAtt User.Arn
+
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
