@@ -18,10 +18,24 @@ Parameters:
     NoEcho: true
 
 Resources:
-  KeyPair:
-    Type: AWS::EC2::KeyPair
+  User:
+    Type: AWS::IAM::User
     Properties:
-      KeyName: !Ref AWS::StackName
+      UserName: !Ref AWS::StackName
+      Path: /
+      Policies:
+        PolicyName: root
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+
+  AccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref User
 
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -43,6 +57,12 @@ Resources:
       ResourceSignal:
         Timeout: PT5M
     Metadata:
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          accessKeyId: !Ref AccessKey
+          secretKey: !GetAtt AccessKey.SecretAccessKey
+          buckets: !Ref WorldBackupS3BucketName
       AWS::CloudFormation::Init:
         config:
           packages:
@@ -157,7 +177,6 @@ Resources:
       ImageId: !Ref ImageId
       SecurityGroups:
         - !Ref SecurityGroup
-      KeyName: !Ref KeyPair
       Monitoring: true
       Tags:
         - Key: Name
