@@ -1,5 +1,7 @@
 ---
 
+concurrency: my-minecraft-server
+
 name: Destroy
 
 "on":
