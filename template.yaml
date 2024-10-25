@@ -83,8 +83,8 @@ Resources:
           packages:
             yum:
               java-21-amazon-corretto-headless: []
-          sources:
-            /minecraft-stuff/world: !Sub https://s3.amazonaws.com/${WorldBackupS3BucketName}/world.tar.gz
+          #          sources:
+          #            /minecraft-stuff/world: !Sub https://s3.amazonaws.com/${WorldBackupS3BucketName}/world.tar.gz
           files:
             /etc/systemd/system/minecraft-server.service:
               content: |
