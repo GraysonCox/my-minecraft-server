@@ -61,6 +61,24 @@ Resources:
           ToPort: 22
           CidrIp: 0.0.0.0/0
 
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      InstanceType: t3.medium
+      ImageId: !Ref ImageId
+      IamInstanceProfile: !Ref InstanceProfile
+      SecurityGroups:
+        - !Ref SecurityGroup
+      Monitoring: true
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+      LaunchTemplateData:
+        InstanceMarketOptions:
+          MarketType: spot
+          SpotOptions:
+            SpotInstanceType: persistent
+
   Ec2Instance:
     Type: AWS::EC2::Instance
     CreationPolicy:
@@ -173,7 +191,7 @@ Resources:
             /minecraft-stuff/start.sh:
               content: |
                 #!/bin/bash
-                java -Xmx1300M -Xms1300M -jar server.jar nogui
+                java -Xmx3G -Xms2G -jar server.jar nogui
               mode: 000555
             /minecraft-stuff/stop.sh:
               content: |
@@ -192,15 +210,9 @@ Resources:
                 enabled: true
                 ensureRunning: true
     Properties:
-      InstanceType: t3.medium
-      ImageId: !Ref ImageId
-      IamInstanceProfile: !Ref InstanceProfile
-      SecurityGroups:
-        - !Ref SecurityGroup
-      Monitoring: true
-      Tags:
-        - Key: Name
-          Value: !Ref AWS::StackName
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.DefaultVersionNumber
       UserData:
         Fn::Base64:
           !Sub
