@@ -1,5 +1,7 @@
 ---
 
+Transform: AWS::LanguageExtensions
+
 Parameters:
   DomainName:
     Type: String
@@ -95,6 +97,13 @@ Resources:
                 WantedBy=multi-user.target
             /minecraft-stuff/eula.txt:
               content: eula=true
+            /minecraft-stuff/ops.json:
+              content:
+                Fn::ToJsonString:
+                  - uuid: f0c68dad-2cef-405c-a506-4caa8ec05767
+                    name: RadGrayson
+                    level: 4
+                    bypassesPlayerLimit: true
             /minecraft-stuff/server.jar:
               source: https://piston-data.mojang.com/v1/objects/7bf95409b0d9b5388bfea3704ec92012d273c14c/server.jar
             /minecraft-stuff/server.properties:
