@@ -161,14 +161,14 @@ Resources:
                 resource-pack-sha1=
                 server-ip=
                 server-port=${ServerPort}
-                simulation-distance=10
+                simulation-distance=100
                 spawn-monsters=true
                 spawn-protection=16
                 sync-chunk-writes=true
                 text-filtering-config=
                 text-filtering-version=0
                 use-native-transport=true
-                view-distance=10
+                view-distance=100
                 white-list=false
             /minecraft-stuff/start.sh:
               content: |
@@ -192,7 +192,7 @@ Resources:
                 enabled: true
                 ensureRunning: true
     Properties:
-      InstanceType: t3.small
+      InstanceType: t3.medium
       ImageId: !Ref ImageId
       IamInstanceProfile: !Ref InstanceProfile
       SecurityGroups:
