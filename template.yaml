@@ -13,12 +13,37 @@ Parameters:
   ServerPort:
     Type: String
     Default: 25565
+  WorldBackupS3BucketName:
+    Type: String
 
 Resources:
-  KeyPair:
-    Type: AWS::EC2::KeyPair
+  Role:
+    Type: AWS::IAM::Role
     Properties:
-      KeyName: !Ref AWS::StackName
+      RoleName: !Ref AWS::StackName
+      Path: /
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: allow-everything
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref Role
 
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -40,11 +65,18 @@ Resources:
       ResourceSignal:
         Timeout: PT5M
     Metadata:
+      AWS::CloudFormation::Authentication:
+        S3AccessCreds:
+          type: S3
+          roleName: !Ref Role
+          buckets: !Ref WorldBackupS3BucketName
       AWS::CloudFormation::Init:
         config:
           packages:
             yum:
               java-21-amazon-corretto-headless: []
+          sources:
+            /minecraft-stuff/the-world: !Sub https://s3.amazonaws.com/${WorldBackupS3BucketName}/world.tar.gz
           files:
             /etc/systemd/system/minecraft-server.service:
               content: |
@@ -55,8 +87,8 @@ Resources:
                 [Service]
                 User=root
                 WorkingDirectory=/minecraft-stuff
-                ExecStart=java -Xmx1300M -Xms1300M -jar server.jar nogui
-                ExecStop=kill -9 $(ps -ef | pgrep -f 'java')
+                ExecStart=/minecraft-stuff/start.sh
+                ExecStop=/minecraft-stuff/stop.sh ; /minecraft-stuff/back-up.sh
                 StandardInput=null
 
                 [Install]
@@ -74,7 +106,7 @@ Resources:
                 broadcast-console-to-ops=true
                 broadcast-rcon-to-ops=true
                 bug-report-link=
-                difficulty=easy
+                difficulty=normal
                 enable-command-block=false
                 enable-jmx-monitoring=false
                 enable-query=false
@@ -92,7 +124,7 @@ Resources:
                 hide-online-players=false
                 initial-disabled-packs=
                 initial-enabled-packs=vanilla
-                level-name=world
+                level-name=the-world
                 level-seed=
                 level-type=minecraft\:normal
                 log-ips=true
@@ -129,6 +161,22 @@ Resources:
                 use-native-transport=true
                 view-distance=10
                 white-list=false
+            /minecraft-stuff/start.sh:
+              content: |
+                #!/bin/bash
+                java -Xmx1300M -Xms1300M -jar server.jar nogui
+              mode: 000555
+            /minecraft-stuff/stop.sh:
+              content: |
+                #!/bin/bash
+                kill -9 $(ps -ef | pgrep -f 'java')
+              mode: 000555
+            /minecraft-stuff/back-up.sh:
+              content: !Sub |
+                #!/bin/bash
+                tar -czvf world.tar.gz -C the-world .
+                aws s3 cp world.tar.gz s3://${WorldBackupS3BucketName}/world.tar.gz
+              mode: 000555
           services:
             systemd:
               minecraft-server:
@@ -137,9 +185,9 @@ Resources:
     Properties:
       InstanceType: t3.small
       ImageId: !Ref ImageId
+      IamInstanceProfile: !Ref InstanceProfile
       SecurityGroups:
         - !Ref SecurityGroup
-      KeyName: !Ref KeyPair
       Monitoring: true
       Tags:
         - Key: Name
